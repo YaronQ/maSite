@@ -119,7 +119,7 @@ header nav a:hover {
 
 .layer1 {
     transform: translateZ(50px) scale(1.08);
-    top: 20vh;
+    top: 15vh;
     left: 38%;
     transform: translateX(-40%) translateZ(50px) scale(1.08);
     font-size: clamp(24px, 15vw, 15vh);
@@ -127,9 +127,11 @@ header nav a:hover {
 }
 
 .layer2 {
-    transform: translateZ(50px) scale(1);
-    top: 40%;
-    right: 51vw;
+    transform: translateZ(1px) scale(1);
+    top: 32vh;
+    left: 22vw;
+    backdrop-filter: blur(5px);
+    width: 700px;
 }
 
 .layer3 {

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="Player/player.css">
     <title>maSite</title>
 
     <script defer src="script.js"></script>
@@ -24,8 +25,45 @@
             <img class="layers_item layer3" src="img/girl.png" alt="">
             <h1 class="layers_item layer1">LET`S TRY</h1>
             <h1 class="layers_item layer1" style="color: rgb(17, 17, 17); font-weight: 100;">LET`S TRY</h1>
-            <button class="layers_item main_button layer2">START!</button>
-            <div class="layer4"><p>Project maSite</p></div>
+            <div class="layers_item layer2">
+                <div class="player-card">
+
+                    <!-- ВИЗУАЛИЗАТОР -->
+                    <div class="visualizer" id="visualizerContainer"></div>
+
+                    <!-- ИНФО -->
+                    <div class="track-info">
+                        <div class="track-name" id="currentTrackName">Загрузка...</div>
+                        <div class="artist-name" id="currentArtistName"></div>
+                        <div class="glow-line"></div>
+                    </div>
+
+                    <!-- ПРОГРЕСС -->
+                    <div class="progress-area">
+                        <div class="progress-bar" id="progressBar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%;">
+                                <div class="progress-thumb" id="progressThumb"></div>
+                            </div>
+                        </div>
+                        <div class="time-labels">
+                            <span id="currentTime">0:00</span>
+                            <span id="totalTime">0:00</span>
+                        </div>
+                    </div>
+
+                    <!-- КНОПКИ -->
+                    <div class="controls">
+                        <button class="ctrl-btn" id="prevBtn">⏮</button>
+                        <button class="ctrl-btn play-btn" id="playBtn">▶</button>
+                        <button class="ctrl-btn" id="nextBtn">⏭</button>
+                    </div>
+
+                    <!-- ПЛЕЙЛИСТ -->
+                    <div class="playlist" id="playlistContainer"></div>
+                </div>
+            </div>
+            
     </section>
+    <script src="Player/player.js"></script>
 </body>
 </html>
