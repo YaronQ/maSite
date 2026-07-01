@@ -1,389 +1,608 @@
-(function() {
-  // ------ ДАННЫЕ ТРЕКОВ (с путями) ------
-  const tracks = [
-    { 
-      title: 'Midnight Waves', 
-      artist: 'Luna Echo', 
-      src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' 
-    },
-    { 
-      title: 'Neon Lights', 
-      artist: 'Stellar Drift', 
-      src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' 
-    },
-    { 
-      title: 'Fading Embers', 
-      artist: 'Aurora Borealis', 
-      src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' 
-    },
-    { 
-      title: 'Echo Park', 
-      artist: 'Luna Echo', 
-      src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' 
-    },
-    { 
-      title: 'Velvet Sky', 
-      artist: 'Arctic Bloom', 
-      src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3' 
-    },
-    { 
-      title: 'Silent Shores', 
-      artist: 'Midnight Collective', 
-      src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3' 
-    }
-  ];
+    (function() {
+        // ============================================================
+        //  ★★★  ЗДЕСЬ ВЫ ПРОПИСЫВАЕТЕ СВОИ ТРЕКИ  ★★★
+        // ============================================================
+        const TRACKS = [
+            { name: 'C418 — Aria Math (Synthwave)', url: '../music/C418 — Aria Math (Synthwave).mp3' },
+            { name: 'Re-Logic - Terraria Soundtrack Corruption', url: '../music/Re-Logic - Terraria Soundtrack Corruption.mp3' },
 
-  // ------ DOM ------
-  const visualizerContainer = document.getElementById('visualizerContainer');
-  const playBtn = document.getElementById('playBtn');
-  const progressFill = document.getElementById('progressFill');
-  const progressBar = document.getElementById('progressBar');
-  const progressThumb = document.getElementById('progressThumb');
-  const currentTrackName = document.getElementById('currentTrackName');
-  const currentArtistName = document.getElementById('currentArtistName');
-  const currentTimeLabel = document.getElementById('currentTime');
-  const totalTimeLabel = document.getElementById('totalTime');
-  const playlistContainer = document.getElementById('playlistContainer');
+            // Добавьте свои файлы по образцу:
+            // { name: 'Мой трек', url: '../music/my_song.mp3' },
+        ];
+        // ============================================================
 
-  // ------ АУДИО ЭЛЕМЕНТ ------
-  const audio = new Audio();
-  audio.preload = 'metadata';
+        // ----- DOM -----
+        const canvas = document.getElementById('spectrogramCanvas');
+        const ctx = canvas.getContext('2d');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const playLabel = document.getElementById('playLabel');
+        const trackSelect = document.getElementById('trackSelect');
+        const statusText = document.getElementById('statusText');
+        const statusBadge = document.getElementById('statusBadge');
+        const progressSlider = document.getElementById('progressSlider');
+        const currentTimeLabel = document.getElementById('currentTimeLabel');
+        const durationLabel = document.getElementById('durationLabel');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeLabel = document.getElementById('volumeLabel');
 
-  // ------ СОСТОЯНИЕ ------
-  let currentTrackIndex = 0;
-  let isPlaying = false;
-  let isDragging = false;
-  let isSeeking = false;
-  let vizInterval = null;
-  let barElements = [];
+        // ----- Аудио -----
+        let audioCtx = null;
+        let sourceNode = null;
+        let analyser = null;
+        let gainNode = null;        // для громкости
+        let isPlaying = false;
+        let isPaused = false;
+        let animationFrame = null;
+        let currentAudioBuffer = null;
+        let currentTrackIndex = 0;
+        let isSeeking = false;
+        let seekTargetTime = 0;
+        let isRestarting = false;
+        let isSwitchingTrack = false; // флаг для переключения треков
 
-  // ------ СОЗДАНИЕ СТОЛБЦОВ ------
-  const BAR_COUNT = 24;
-  function createBars() {
-    visualizerContainer.innerHTML = '';
-    barElements = [];
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const bar = document.createElement('div');
-      bar.className = 'visualizer-bar';
-      const h = 6 + Math.random() * 10;
-      bar.style.height = h + 'px';
-      visualizerContainer.appendChild(bar);
-      barElements.push(bar);
-    }
-  }
-  createBars();
+        // Параметры спектра
+        const FFT_SIZE = 1024;
+        const SMOOTHING = 0.85;
 
-  // ------ ВИЗУАЛИЗАТОР (всегда активен, но с разной амплитудой) ------
-  function animateVisualizer() {
-    const time = Date.now() / 220;
-    
-    if (isPlaying) {
-      barElements.forEach((bar, index) => {
-        const phase = index * 0.9 + 0.7;
-        const wave1 = Math.sin(time * 0.6 + phase * 1.2);
-        const wave2 = Math.sin(time * 0.9 + index * 0.5 + 2.1);
-        const wave3 = Math.sin(time * 0.3 + index * 1.7 + 0.8);
-        const spike = Math.random() > 0.92 ? 0.7 + Math.random() * 0.6 : 0;
-        
-        let raw = (wave1 * 0.6 + wave2 * 0.3 + wave3 * 0.2 + spike * 0.4);
-        raw = (raw + 1.2) / 2.4;
-        raw = Math.min(1, Math.max(0.15, raw));
-        
-        const jitter = 0.85 + 0.3 * Math.sin(time * 0.5 + index * 0.3 + 5.2);
-        let height = 10 + 100 * raw * jitter;
-        height = Math.min(122, Math.max(6, height));
-        bar.style.height = height + 'px';
-      });
-    } else {
-      barElements.forEach((bar, index) => {
-        const phase = index * 0.7 + 1.2;
-        const wave = Math.sin(time * 0.25 + phase * 1.1) * 0.5 + 
-                     Math.sin(time * 0.4 + index * 0.3 + 2.3) * 0.3;
-        const baseHeight = 8 + Math.random() * 4;
-        const amplitude = 6 + Math.random() * 4;
-        let height = baseHeight + wave * amplitude;
-        height = Math.min(28, Math.max(5, height));
-        bar.style.height = height + 'px';
-      });
-    }
-  }
+        // ---- Заполняем select списком треков ----
+        function populateTrackList() {
+            trackSelect.innerHTML = '';
+            TRACKS.forEach((track, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = track.name;
+                trackSelect.appendChild(option);
+            });
+            if (TRACKS.length > 0) {
+                trackSelect.value = 0;
+                currentTrackIndex = 0;
+            }
+        }
 
-  function startVisualizer() {
-    if (vizInterval) clearInterval(vizInterval);
-    vizInterval = setInterval(animateVisualizer, 60);
-  }
+        // ---- Размеры canvas ----
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            const width = rect.width || 800;
+            const height = rect.height || 200;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            ctx.scale(dpr, dpr);
+            return { width, height };
+        }
 
-  // ------ ФОРМАТИРОВАНИЕ ВРЕМЕНИ ------
-  function formatTime(seconds) {
-    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
+        let { width: canvasW, height: canvasH } = resizeCanvas();
+        window.addEventListener('resize', () => {
+            const size = resizeCanvas();
+            canvasW = size.width;
+            canvasH = size.height;
+            if (!isPlaying && !isPaused) {
+                ctx.clearRect(0, 0, canvasW, canvasH);
+            }
+        });
 
-  // ------ ОБНОВЛЕНИЕ ПРОГРЕССА ------
-  function updateProgress(percent) {
-    percent = Math.min(100, Math.max(0, percent));
-    progressFill.style.width = percent + '%';
-    if (audio.duration && !isNaN(audio.duration)) {
-      const curSec = (percent / 100) * audio.duration;
-      currentTimeLabel.textContent = formatTime(curSec);
-    }
-  }
+        // ---- Отрисовка спектрограммы ----
+        function drawSpectrogram() {
+            if (!analyser) {
+                ctx.clearRect(0, 0, canvasW, canvasH);
+                return;
+            }
 
-  // ------ ЗАГРУЗКА ТРЕКА ------
-  function loadTrack(index) {
-    const track = tracks[index];
-    if (!track) return;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
 
-    currentTrackName.textContent = track.title;
-    currentArtistName.textContent = track.artist;
+            ctx.clearRect(0, 0, canvasW, canvasH);
 
-    audio.src = track.src;
-    audio.load();
+            const barWidth = canvasW / bufferLength;
+            let x = 0;
 
-    updateProgress(0);
-    totalTimeLabel.textContent = '--:--';
+            for (let i = 0; i < bufferLength; i++) {
+                const value = dataArray[i] / 255;
 
-    audio.onloadedmetadata = function() {
-      if (audio.duration && !isNaN(audio.duration)) {
-        totalTimeLabel.textContent = formatTime(audio.duration);
-      }
-    };
+                const red = Math.min(255, Math.floor(20 + value * 200));
+                const green = Math.min(255, Math.floor(10 + value * 180));
+                const blue = Math.min(255, Math.floor(80 + (1 - value) * 140));
 
-    document.querySelectorAll('.playlist-item').forEach((el, i) => {
-      el.classList.toggle('active', i === index);
-    });
+                const barHeight = value * canvasH * 0.85 + 2;
+                const y0 = canvasH - barHeight;
 
-    if (isPlaying) {
-      audio.play().catch(() => {});
-    }
-  }
+                const grad = ctx.createLinearGradient(0, y0, 0, canvasH);
+                grad.addColorStop(0, `rgba(${red}, ${green}, ${blue}, 1.0)`);
+                grad.addColorStop(0.6, `rgba(${red*0.8}, ${green*0.8}, ${blue*0.9}, 1.0)`);
+                grad.addColorStop(1, `rgba(20, 40, 80, 0.0)`);
 
-  // ------ PLAY/PAUSE ------
-  function togglePlay() {
-    if (isPlaying) {
-      audio.pause();
-      isPlaying = false;
-      playBtn.textContent = '▶';
-    } else {
-      audio.play().catch(err => {
-        console.warn('Не удалось воспроизвести:', err);
-      });
-      isPlaying = true;
-      playBtn.textContent = '⏸';
-    }
-  }
+                ctx.fillStyle = grad;
+                ctx.fillRect(x, y0, barWidth + 0.5, barHeight);
 
-  // ------ ПЕРЕКЛЮЧЕНИЕ ТРЕКОВ ------
-  function nextTrack() {
-    const newIndex = (currentTrackIndex + 1) % tracks.length;
-    currentTrackIndex = newIndex;
-    loadTrack(currentTrackIndex);
-    if (isPlaying) {
-      audio.play().catch(() => {});
-    }
-  }
+                if (value > 0.04) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${value * 0.3})`;
+                    ctx.fillRect(x, y0, barWidth + 0.5, 1.5);
+                }
 
-  function prevTrack() {
-    const newIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
-    currentTrackIndex = newIndex;
-    loadTrack(currentTrackIndex);
-    if (isPlaying) {
-      audio.play().catch(() => {});
-    }
-  }
+                x += barWidth;
+            }
 
-  function selectTrack(index) {
-    if (index === currentTrackIndex) {
-      togglePlay();
-      return;
-    }
-    currentTrackIndex = index;
-    loadTrack(currentTrackIndex);
-    if (isPlaying) {
-      audio.play().catch(() => {});
-    }
-  }
+            ctx.shadowColor = 'rgba(80, 180, 255, 0.04)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0, 0, 1, 1);
+            ctx.shadowBlur = 0;
+        }
 
-  // ------ ОБНОВЛЕНИЕ ПРОГРЕССА ОТ AUDIO ------
-  function updateFromAudio() {
-    if (isDragging || isSeeking) return;
-    if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
-      const percent = (audio.currentTime / audio.duration) * 100;
-      updateProgress(percent);
-      currentTimeLabel.textContent = formatTime(audio.currentTime);
-    }
-  }
+        // ---- Анимация ----
+        function animateSpectrum() {
+            if (!isPlaying && !isPaused) return;
+            drawSpectrogram();
+            animationFrame = requestAnimationFrame(animateSpectrum);
+        }
 
-  // ------ ПЕРЕТАСКИВАНИЕ ПОЛЗУНКА (МГНОВЕННОЕ) ------
-  function setupDragging() {
-    let isDraggingLocal = false;
+        function startAnimation() {
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            animateSpectrum();
+        }
 
-    // Функция для обновления позиции по координатам
-    function updatePosition(clientX) {
-      const rect = progressBar.getBoundingClientRect();
-      let percent = ((clientX - rect.left) / rect.width) * 100;
-      percent = Math.min(100, Math.max(0, percent));
-      
-      progressFill.style.width = percent + '%';
-      if (audio.duration && !isNaN(audio.duration)) {
-        const curSec = (percent / 100) * audio.duration;
-        currentTimeLabel.textContent = formatTime(curSec);
-      }
-      return percent;
-    }
+        function stopAnimation() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            ctx.clearRect(0, 0, canvasW, canvasH);
+        }
 
-    function startDrag(e) {
-      e.preventDefault();
-      isDraggingLocal = true;
-      isDragging = true;
-      isSeeking = true;
-      progressThumb.classList.add('hidden');
-      document.body.style.cursor = 'grabbing';
-      
-      // Мгновенно перемещаем ползунок в позицию клика
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      if (clientX !== undefined) {
-        updatePosition(clientX);
-      }
-    }
+        // ---- Аудио контекст ----
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // Создаём gain-узел для громкости
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = parseFloat(volumeSlider.value);
+                gainNode.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
 
-    function moveDrag(e) {
-      if (!isDraggingLocal) return;
-      e.preventDefault();
+        // ---- Загрузка трека по индексу ----
+        async function loadTrack(index, autoPlay = false) {
+            if (index < 0 || index >= TRACKS.length) return;
+            currentTrackIndex = index;
+            const track = TRACKS[index];
 
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      if (clientX === undefined) return;
-      
-      updatePosition(clientX);
-    }
+            try {
+                const response = await fetch(track.url);
+                if (!response.ok) throw new Error('File not found');
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                currentAudioBuffer = audioBuffer;
 
-    function endDrag(e) {
-      if (!isDraggingLocal) return;
-      isDraggingLocal = false;
-      isDragging = false;
-      progressThumb.classList.remove('hidden');
-      document.body.style.cursor = 'default';
+                const duration = currentAudioBuffer.duration;
+                durationLabel.textContent = formatTime(duration);
+                progressSlider.max = duration;
+                progressSlider.value = 0;
+                currentTimeLabel.textContent = '0:00';
 
-      // Устанавливаем позицию в аудио
-      const percent = parseFloat(progressFill.style.width) || 0;
-      if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
-        audio.currentTime = (percent / 100) * audio.duration;
-      }
-      isSeeking = false;
-    }
+                trackSelect.value = index;
 
-    // События для ползунка
-    progressThumb.addEventListener('mousedown', startDrag);
-    progressThumb.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      startDrag(e);
-    }, { passive: false });
+                statusText.textContent = 'Ready for playback';
+                statusBadge.className = 'status-badge';
 
-    // Глобальные события для перемещения
-    document.addEventListener('mousemove', moveDrag);
-    document.addEventListener('mouseup', endDrag);
-    document.addEventListener('touchmove', moveDrag, { passive: false });
-    document.addEventListener('touchend', endDrag);
+                preparePlayback();
+                ctx.clearRect(0, 0, canvasW, canvasH);
 
-    // КЛИК ПО ДОРОЖКЕ — мгновенное перемещение
-    progressBar.addEventListener('mousedown', function(e) {
-      // Если клик был по ползунку, не обрабатываем (уже обработано выше)
-      if (e.target === progressThumb) return;
-      
-      const rect = this.getBoundingClientRect();
-      let percent = ((e.clientX - rect.left) / rect.width) * 100;
-      percent = Math.min(100, Math.max(0, percent));
-      
-      // Мгновенно обновляем UI
-      updateProgress(percent);
-      // Устанавливаем позицию в аудио
-      if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
-        audio.currentTime = (percent / 100) * audio.duration;
-      }
-    });
+                if (autoPlay || isPlaying) {
+                    startPlayback();
+                }
+            } catch (error) {
+                console.error('Track loading error:', error);
+                statusText.textContent = 'Error: ' + track.name;
+                statusBadge.className = 'status-badge idle';
+            }
+        }
 
-    // Для тачей на дорожке
-    progressBar.addEventListener('touchstart', function(e) {
-      if (e.target === progressThumb) return;
-      e.preventDefault();
-      
-      const touch = e.touches[0];
-      if (!touch) return;
-      
-      const rect = this.getBoundingClientRect();
-      let percent = ((touch.clientX - rect.left) / rect.width) * 100;
-      percent = Math.min(100, Math.max(0, percent));
-      
-      updateProgress(percent);
-      if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
-        audio.currentTime = (percent / 100) * audio.duration;
-      }
-    }, { passive: false });
-  }
+        // ---- Подготовка ----
+        function preparePlayback() {
+            if (!currentAudioBuffer) return false;
+            if (!audioCtx) {
+                initAudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
 
-  // ------ РЕНДЕР ПЛЕЙЛИСТА ------
-  function renderPlaylist() {
-    playlistContainer.innerHTML = '';
-    tracks.forEach((track, idx) => {
-      const item = document.createElement('button');
-      item.className = 'playlist-item' + (idx === currentTrackIndex ? ' active' : '');
-      item.setAttribute('data-index', idx);
-      item.innerHTML = `
-        <span class="track-index">${String(idx + 1).padStart(2, '0')}</span>
-        <span class="track-title">${track.title}</span>
-        <span class="track-duration">${track.src ? '' : ''}</span>
-        <span class="play-indicator"></span>
-      `;
-      item.addEventListener('click', () => selectTrack(idx));
-      playlistContainer.appendChild(item);
-    });
-  }
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = FFT_SIZE;
+            analyser.smoothingTimeConstant = SMOOTHING;
 
-  // ------ ИНИЦИАЛИЗАЦИЯ ------
-  function init() {
-    currentTrackIndex = 0;
-    renderPlaylist();
-    loadTrack(0);
-    
-    startVisualizer();
+            if (sourceNode) {
+                try { 
+                    sourceNode.disconnect(); 
+                    sourceNode.stop();
+                } catch(e) {}
+                sourceNode = null;
+            }
 
-    audio.addEventListener('timeupdate', updateFromAudio);
-    
-    // Обработка окончания трека — автоматический переход к следующему
-    audio.addEventListener('ended', () => {
-      // Переключаем на следующий трек
-      const newIndex = (currentTrackIndex + 1) % tracks.length;
-      currentTrackIndex = newIndex;
-      loadTrack(currentTrackIndex);
-      // Продолжаем воспроизведение
-      audio.play().catch(() => {});
-      // Убеждаемся, что isPlaying и кнопка в правильном состоянии
-      isPlaying = true;
-      playBtn.textContent = '⏸';
-    });
+            sourceNode = audioCtx.createBufferSource();
+            sourceNode.buffer = currentAudioBuffer;
+            sourceNode.connect(analyser);
+            analyser.connect(gainNode);
 
-    audio.addEventListener('play', () => {
-      isPlaying = true;
-      playBtn.textContent = '⏸';
-    });
+            sourceNode.onended = () => {
+                // Если это не ручная остановка и не перемотка и не переключение трека
+                if (isPlaying && !isRestarting && !isSwitchingTrack) {
+                    // Автоматически переключаем на следующий трек
+                    playNextTrack();
+                }
+                isRestarting = false;
+                isSwitchingTrack = false;
+            };
 
-    audio.addEventListener('pause', () => {
-      // isPlaying обновляется в togglePlay
-    });
+            return true;
+        }
 
-    playBtn.addEventListener('click', togglePlay);
-    document.getElementById('nextBtn').addEventListener('click', nextTrack);
-    document.getElementById('prevBtn').addEventListener('click', prevTrack);
+        // ---- Переключение на следующий трек ----
+        function playNextTrack() {
+            if (TRACKS.length === 0) return;
+            
+            isSwitchingTrack = true;
+            const nextIndex = (currentTrackIndex + 1) % TRACKS.length;
+            
+            // Останавливаем текущий
+            if (sourceNode) {
+                try {
+                    sourceNode.stop();
+                    sourceNode.disconnect();
+                } catch(e) {}
+                sourceNode = null;
+            }
+            
+            // Загружаем следующий
+            loadTrack(nextIndex, true);
+        }
 
-    setupDragging();
+        // ---- Переключение на предыдущий трек ----
+        function playPreviousTrack() {
+            if (TRACKS.length === 0) return;
+            
+            isSwitchingTrack = true;
+            const prevIndex = (currentTrackIndex - 1 + TRACKS.length) % TRACKS.length;
+            
+            if (sourceNode) {
+                try {
+                    sourceNode.stop();
+                    sourceNode.disconnect();
+                } catch(e) {}
+                sourceNode = null;
+            }
+            
+            loadTrack(prevIndex, true);
+        }
 
-    audio.onerror = function() {
-      console.warn('Ошибка загрузки аудио:', audio.src);
-      totalTimeLabel.textContent = '--:--';
-    };
-  }
+        // ---- Перезапуск с новой позиции (для перемотки) ----
+        function restartAtPosition(position) {
+            if (!currentAudioBuffer || !audioCtx) return;
+            
+            isRestarting = true;
+            const wasPlaying = isPlaying;
+            
+            if (sourceNode) {
+                try {
+                    sourceNode.stop();
+                    sourceNode.disconnect();
+                } catch(e) {}
+                sourceNode = null;
+            }
+            
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = FFT_SIZE;
+            analyser.smoothingTimeConstant = SMOOTHING;
+            
+            sourceNode = audioCtx.createBufferSource();
+            sourceNode.buffer = currentAudioBuffer;
+            sourceNode.connect(analyser);
+            analyser.connect(gainNode);
+            
+            sourceNode.onended = () => {
+                if (isPlaying && !isRestarting && !isSwitchingTrack) {
+                    playNextTrack();
+                }
+                isRestarting = false;
+                isSwitchingTrack = false;
+            };
+            
+            if (wasPlaying) {
+                sourceNode.start(0, position);
+                isPlaying = true;
+                isPaused = false;
+                statusText.textContent = 'Play';
+                statusBadge.className = 'status-badge';
+                updatePlayButton(true);
+                startAnimation();
+            } else {
+                isPlaying = false;
+                isPaused = true;
+                statusText.textContent = 'on pause';
+                statusBadge.className = 'status-badge idle';
+                updatePlayButton(false);
+            }
+            
+            progressSlider.value = position;
+            currentTimeLabel.textContent = formatTime(position);
+        }
 
-  init();
-})();
+        // ---- Старт ----
+        function startPlayback() {
+            if (!currentAudioBuffer) {
+                statusText.textContent = 'No tracks';
+                statusBadge.className = 'status-badge idle';
+                return;
+            }
+            if (isPlaying) {
+                pausePlayback();
+                return;
+            }
+
+            if (!audioCtx || audioCtx.state === 'closed') {
+                initAudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (isPaused && sourceNode) {
+                try { 
+                    sourceNode.stop();
+                    sourceNode.disconnect();
+                } catch(e) {}
+                sourceNode = null;
+                isPaused = false;
+                preparePlayback();
+            }
+
+            if (!sourceNode) {
+                preparePlayback();
+            }
+
+            if (!sourceNode) {
+                statusText.textContent = 'Preparation error';
+                return;
+            }
+
+            let startTime = 0;
+            if (seekTargetTime > 0 && seekTargetTime < currentAudioBuffer.duration) {
+                startTime = seekTargetTime;
+            }
+            
+            sourceNode.start(0, startTime);
+            isPlaying = true;
+            isPaused = false;
+            statusText.textContent = 'Plays';
+            statusBadge.className = 'status-badge';
+            updatePlayButton(true);
+            startAnimation();
+            updateProgressLoop();
+        }
+
+        // ---- Пауза ----
+        function pausePlayback() {
+            if (!isPlaying) return;
+            if (sourceNode) {
+                try {
+                    const pausedTime = parseFloat(progressSlider.value) || 0;
+                    seekTargetTime = pausedTime;
+                    sourceNode.stop();
+                    sourceNode.disconnect();
+                    sourceNode = null;
+                } catch(e) {}
+                isPlaying = false;
+                isPaused = true;
+                statusText.textContent = 'on pause';
+                statusBadge.className = 'status-badge idle';
+                updatePlayButton(false);
+                stopAnimation();
+                drawSpectrogram();
+            }
+        }
+
+        // ---- Остановка ----
+        function stopPlayback() {
+            if (sourceNode) {
+                try { 
+                    sourceNode.stop();
+                    sourceNode.disconnect();
+                } catch(e) {}
+                sourceNode = null;
+            }
+            isPlaying = false;
+            isPaused = false;
+            stopAnimation();
+            updatePlayButton(false);
+            progressSlider.value = 0;
+            currentTimeLabel.textContent = '0:00';
+            ctx.clearRect(0, 0, canvasW, canvasH);
+        }
+
+        // ---- Кнопка ----
+        function updatePlayButton(playing) {
+            if (playing) {
+                playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />';
+                playLabel.textContent = 'Pause';
+            } else {
+                playIcon.innerHTML = '<polygon points="6,3 20,12 6,21" />';
+                playLabel.textContent = 'Play';
+            }
+        }
+
+        // ---- Формат времени ----
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // ---- Обновление прогресса ----
+        let progressInterval = null;
+
+        function updateProgressLoop() {
+            if (progressInterval) clearInterval(progressInterval);
+            progressInterval = setInterval(() => {
+                if (!isPlaying) return;
+                if (!sourceNode || !currentAudioBuffer) return;
+                if (isSeeking) return;
+
+                let currentVal = parseFloat(progressSlider.value) || 0;
+                currentVal += 0.1;
+                if (currentVal > currentAudioBuffer.duration) {
+                    currentVal = currentAudioBuffer.duration;
+                }
+                progressSlider.value = currentVal;
+                currentTimeLabel.textContent = formatTime(currentVal);
+            }, 100);
+        }
+
+        // ---- Громкость ----
+        volumeSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            const percent = Math.round(val * 100);
+            volumeLabel.textContent = percent + '%';
+            
+            if (gainNode) {
+                gainNode.gain.value = val;
+            }
+        });
+
+        // ---- Перемотка ----
+        progressSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            currentTimeLabel.textContent = formatTime(val);
+            seekTargetTime = val;
+            isSeeking = true;
+        });
+
+        progressSlider.addEventListener('change', (e) => {
+            const val = parseFloat(e.target.value);
+            seekTargetTime = val;
+            isSeeking = false;
+
+            if (isPlaying && currentAudioBuffer) {
+                restartAtPosition(val);
+            } else if (isPaused && currentAudioBuffer) {
+                progressSlider.value = val;
+                currentTimeLabel.textContent = formatTime(val);
+                seekTargetTime = val;
+                
+                if (sourceNode) {
+                    try {
+                        sourceNode.stop();
+                        sourceNode.disconnect();
+                    } catch(ex) {}
+                    sourceNode = null;
+                }
+                preparePlayback();
+                isPaused = true;
+                statusText.textContent = 'on pause';
+                statusBadge.className = 'status-badge idle';
+                ctx.clearRect(0, 0, canvasW, canvasH);
+            } else if (!isPlaying && !isPaused && currentAudioBuffer) {
+                if (sourceNode) {
+                    try {
+                        sourceNode.stop();
+                        sourceNode.disconnect();
+                    } catch(ex) {}
+                    sourceNode = null;
+                }
+                preparePlayback();
+                statusText.textContent = 'Ready';
+                statusBadge.className = 'status-badge idle';
+                ctx.clearRect(0, 0, canvasW, canvasH);
+            }
+        });
+
+        // ---- Обработчики событий ----
+        playBtn.addEventListener('click', () => {
+            if (!currentAudioBuffer && TRACKS.length > 0) {
+                initAudioContext();
+                loadTrack(currentTrackIndex);
+                setTimeout(() => startPlayback(), 100);
+                return;
+            }
+            initAudioContext();
+            if (!isPlaying) {
+                if (parseFloat(progressSlider.value) >= currentAudioBuffer.duration - 0.1) {
+                    progressSlider.value = 0;
+                    currentTimeLabel.textContent = '0:00';
+                    seekTargetTime = 0;
+                }
+                startPlayback();
+            } else {
+                pausePlayback();
+            }
+        });
+
+        trackSelect.addEventListener('change', (e) => {
+            const index = parseInt(e.target.value);
+            if (isPlaying || isPaused) {
+                isSwitchingTrack = true;
+                stopPlayback();
+            }
+            if (progressInterval) clearInterval(progressInterval);
+            initAudioContext();
+            loadTrack(index);
+        });
+
+        // ---- Инициализация ----
+        populateTrackList();
+        ctx.clearRect(0, 0, canvasW, canvasH);
+        statusText.textContent = 'Load track';
+        statusBadge.className = 'status-badge idle';
+        durationLabel.textContent = '0:00';
+        progressSlider.value = 0;
+
+        // Устанавливаем начальную громкость
+        volumeLabel.textContent = '20%';
+
+        if (TRACKS.length > 0) {
+            initAudioContext();
+            loadTrack(0);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (progressInterval) clearInterval(progressInterval);
+            if (audioCtx && audioCtx.state !== 'closed') {
+                audioCtx.close();
+            }
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+        });
+
+        setTimeout(() => {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+        }, 50);
+
+        // Добавляем поддержку клавиш для навигации (опционально)
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'SELECT') return;
+            if (e.key === ' ' || e.key === 'Space') {
+                e.preventDefault();
+                playBtn.click();
+            }
+            if (e.key === 'ArrowRight' && e.ctrlKey) {
+                e.preventDefault();
+                const next = (currentTrackIndex + 1) % TRACKS.length;
+                trackSelect.value = next;
+                trackSelect.dispatchEvent(new Event('change'));
+            }
+            if (e.key === 'ArrowLeft' && e.ctrlKey) {
+                e.preventDefault();
+                const prev = (currentTrackIndex - 1 + TRACKS.length) % TRACKS.length;
+                trackSelect.value = prev;
+                trackSelect.dispatchEvent(new Event('change'));
+            }
+        });
+
+    })();

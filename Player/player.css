@@ -1,260 +1,328 @@
-.player-card {
-      width: 100%;
-      max-width: 1040px;
-      background: rgba(116, 116, 116, 0);
-      border-radius: 3.5rem 3.5rem 2.5rem 2.5rem;
-      padding: 2.2rem 2rem 2.2rem;
-      box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.7),
-        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-    }
+        .player-card {
+            background: rgba(12, 16, 24, 0);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 32px 36px 28px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            width: 100%;
+            max-width: 880px;
+            position: relative;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: box-shadow 0.3s;
+        }
 
-    /* --- ВИЗУАЛИЗАТОР (СТОЛБЦЫ) --- */
-    .visualizer {
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 5px;
-      height: 130px;
-      margin: 0.8rem 0 1.2rem;
-      padding: 0 0.2rem;
-    }
+        .player-card:hover {
+            box-shadow: 0 28px 56px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(120, 180, 255, 0.12);
+        }
 
-    .visualizer-bar {
-      width: 12px;
-      background: linear-gradient(180deg, #e8cfb0, #b58d6a);
-      border-radius: 6px 6px 2px 2px;
-      height: 12px;
-      box-shadow: 0 0 12px rgba(200, 170, 130, 0.15);
-      transition: height 0.08s ease-out, background 0.2s;
-      flex-shrink: 0;
-      will-change: height;
-    }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 22px;
+            color: #d0d9e6;
+        }
 
-    .visualizer-bar:nth-child(odd) {
-      background: linear-gradient(180deg, #dbbd9a, #a87f5a);
-    }
-    .visualizer-bar:nth-child(3n) {
-      background: linear-gradient(180deg, #e2cfb8, #bf9b7a);
-    }
-    .visualizer-bar:nth-child(5n+2) {
-      background: linear-gradient(180deg, #d4b392, #b08864);
-    }
+        .header h1 {
+            font-weight: 400;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #2a3a5a, #ad375a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 0.3px;
+            text-shadow: 0 0 16px rgba(70, 130, 255, 0.15);
+        }
 
-    /* --- ИНФО О ТРЕКЕ --- */
-    .track-info {
-      text-align: center;
-      margin: 0.2rem 0 0.6rem;
-    }
-    .track-name {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: #f0ece4;
-      letter-spacing: -0.3px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
-      margin-bottom: 0.1rem;
-    }
-    .artist-name {
-      font-size: 0.9rem;
-      font-weight: 400;
-      color: #b6ad9e;
-      opacity: 0.8;
-    }
-    .glow-line {
-      width: 40px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #e2cfb8, transparent);
-      margin: 0.2rem auto 0.4rem;
-      opacity: 0.2;
-      border-radius: 10px;
-    }
+        .header small {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: #912d4b;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 14px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            letter-spacing: 0.5px;
+        }
 
-    /* --- ПРОГРЕСС С ПЕРЕТАСКИВАНИЕМ --- */
-    .progress-area {
-      margin: 0.4rem 0 1.2rem;
-    }
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      background: rgba(200, 180, 160, 0.15);
-      border-radius: 10px;
-      cursor: pointer;
-      position: relative;
-      transition: height 0.15s ease;
-    }
-    .progress-bar:hover {
-      height: 8px;
-    }
-    .progress-fill {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #dbbd9a, #e8cfb0);
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(220, 180, 140, 0.3);
-      position: relative;
-      transition: width 0.05s linear;
-      pointer-events: none;
-    }
-    .progress-thumb {
-      position: absolute;
-      right: -8px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      background: #f2e3d0;
-      border-radius: 50%;
-      box-shadow: 0 0 14px #dbb48b, 0 0 0 2px rgba(0,0,0,0.3);
-      cursor: grab;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      pointer-events: all;
-      z-index: 2;
-    }
-    .progress-thumb:active {
-      cursor: grabbing;
-      transform: translateY(-50%) scale(1.15);
-      box-shadow: 0 0 24px #dbb48b, 0 0 0 3px rgba(0,0,0,0.4);
-    }
-    .progress-thumb.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
 
-    .time-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.65rem;
-      color: #8f897e;
-      margin-top: 0.3rem;
-      letter-spacing: 0.3px;
-    }
+        .play-btn {
+            background: linear-gradient(145deg, #2a3a5a, #7c2741);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #eaf0ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
 
-    /* --- КНОПКИ УПРАВЛЕНИЯ --- */
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1.8rem;
-      margin: 0.6rem 0 1rem;
-    }
-    .ctrl-btn {
-      background: transparent;
-      border: none;
-      color: #cec5b6;
-      font-size: 1.8rem;
-      width: 3.2rem;
-      height: 3.2rem;
-      border-radius: 60px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(4px);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
-    }
-    .ctrl-btn:hover {
-      color: #f5eee6;
-      background: rgba(220, 200, 180, 0.06);
-      transform: scale(1.05);
-    }
-    .ctrl-btn:active { transform: scale(0.94); }
-    .ctrl-btn.play-btn {
-        font-size: 2.8rem;
-        width: 4.2rem;
-        height: 4.2rem;
-        background: rgba(220, 195, 170, 0.07);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255, 215, 180, 0.08);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        color: #f0e3d4;
-    }
-    .ctrl-btn.play-btn:hover {
-      background: rgba(230, 210, 185, 0.12);
-      color: #fff8ee;
-    }
+        .play-btn:hover {
+            background: linear-gradient(145deg, #2a3a5a, #7c2741);
+            box-shadow: 0 8px 18px rgba(120, 0, 66, 0.5);
+            transform: scale(1.01);
+            border-color: rgba(100, 180, 255, 0.2);
+        }
 
-    /* --- ПЛЕЙЛИСТ --- */
-    .playlist {
-      margin: 1.2rem 0 0.2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-      padding-top: 1rem;
-      max-height: 180px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(200, 180, 160, 0.2) transparent;
-    }
-    .playlist::-webkit-scrollbar {
-      width: 4px;
-    }
-    .playlist::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .playlist::-webkit-scrollbar-thumb {
-      background: rgba(200, 180, 160, 0.25);
-      border-radius: 20px;
-    }
+        .play-btn:active {
+            transform: scale(0.97);
+        }
 
-    .playlist-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0.8rem;
-      margin-bottom: 0.2rem;
-      border-radius: 60px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      color: #b5aa9a;
-      background: transparent;
-      border: none;
-      width: 100%;
-      text-align: left;
-      font-family: inherit;
-      font-size: 0.9rem;
-      gap: 0.8rem;
-    }
-    .playlist-item:hover {
-      background: rgba(255, 255, 255, 0.03);
-      color: #f0ece4;
-    }
-    .playlist-item.active {
-      background: rgba(220, 195, 170, 0.08);
-      color: #f5eee6;
-      box-shadow: 0 0 0 1px rgba(255, 215, 180, 0.03);
-    }
-    .playlist-item .track-index {
-      font-size: 0.7rem;
-      opacity: 0.4;
-      min-width: 1.6rem;
-    }
-    .playlist-item .track-title {
-      flex: 1;
-      font-weight: 400;
-      letter-spacing: -0.2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .playlist-item .track-duration {
-      font-size: 0.7rem;
-      opacity: 0.5;
-    }
-    .playlist-item .play-indicator {
-      font-size: 0.8rem;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .playlist-item.active .play-indicator {
-      opacity: 0.8;
-      color: #e8cfb0;
-    }
+        .play-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
 
-    /* --- АДАПТИВ --- */
-    @media (max-width: 480px) {
-      .player-card { padding: 1.8rem 1.2rem; }
-      .controls { gap: 1.2rem; }
-      .ctrl-btn.play-btn { width: 3.8rem; height: 3.8rem; font-size: 2.4rem; }
-      .track-name { font-size: 1.2rem; }
-      .visualizer { height: 100px; gap: 4px; }
-      .visualizer-bar { width: 10px; }
-      .progress-thumb { width: 14px; height: 14px; right: -7px; }
-    }
+        .play-btn.small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .track-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px 12px 6px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .track-selector label {
+            color: #8898b0;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .track-selector select {
+            background: transparent;
+            border: none;
+            color: #eaf0ff;
+            font-size: 0.9rem;
+            padding: 6px 4px;
+            outline: none;
+            flex: 1;
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        .track-selector select option {
+            background: #1a1f2a;
+            color: #eaf0ff;
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            background: rgba(0, 200, 150, 0.12);
+            color: #7cdbc0;
+            padding: 4px 16px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 255, 200, 0.08);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .status-badge.idle {
+            background: rgba(255, 200, 100, 0.07);
+            color: #c8b088;
+            border-color: rgba(255, 200, 100, 0.08);
+        }
+
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 6px 4px 14px 4px;
+        }
+
+        .time-label {
+            font-size: 0.75rem;
+            font-variant-numeric: tabular-nums;
+            color: #a0b0c8;
+            min-width: 44px;
+            letter-spacing: 0.3px;
+        }
+
+        .progress-slider {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ad375a;
+            box-shadow: 0 0 12px rgba(70, 130, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: 0.08s ease;
+            cursor: pointer;
+        }
+
+        .progress-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+            background: #ad375a;
+        }
+
+        .progress-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ad375a;
+            box-shadow: 0 0 12px rgba(70, 130, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        /* ---- Ползунок громкости ---- */
+        .volume-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 4px 10px 4px;
+        }
+
+        .volume-icon {
+            color: #8898b0;
+            font-size: 1.1rem;
+            min-width: 28px;
+        }
+
+        .volume-slider {
+            flex: 1;
+            max-width: 120px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ad375a;
+            box-shadow: 0 0 12px rgba(70, 130, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ad375a;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+        }
+
+        .volume-label {
+            color: #8898b0;
+            font-size: 0.7rem;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .spectrogram-container {
+            margin-top: 38vh;
+            overflow: hidden;
+            background: transparent;
+            position: absolute;
+            width: 100%;
+            aspect-ratio: 16 / 5;
+            min-height: 120px;
+
+        }
+
+        #spectrogramCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            image-rendering: pixelated;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 14px;
+            left: 20px;
+            color: rgba(180, 200, 230, 0.12);
+            font-size: 0.65rem;
+            letter-spacing: 1.2px;
+            pointer-events: none;
+            font-weight: 300;
+            backdrop-filter: blur(2px);
+            padding: 2px 12px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 640px) {
+            .player-card {
+                padding: 18px 16px 20px;
+                border-radius: 32px;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .status-badge {
+                margin-left: 0;
+                justify-content: center;
+            }
+            .play-btn {
+                justify-content: center;
+            }
+            .header h1 {
+                font-size: 1.0rem;
+            }
+            .progress-area {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .time-label {
+                min-width: 36px;
+                font-size: 0.7rem;
+            }
+        }

@@ -11,6 +11,13 @@
 </head>
 <body>
     <div class="background"></div>
+
+    <!-- Сама спектрограмма (фон) -->
+    <div class="spectrogram-container">
+        <canvas id="spectrogramCanvas"></canvas>
+        <div class="hint">⚡ спектр в реальном времени</div>
+    </div>  
+
     <header>
         <nav>
             <a href="index.html">Home</a>
@@ -27,43 +34,51 @@
             <h1 class="layers_item layer1" style="color: rgb(17, 17, 17); font-weight: 100;">LET`S TRY</h1>
             <div class="layers_item layer2">
                 <div class="player-card">
-
-                    <!-- ВИЗУАЛИЗАТОР -->
-                    <div class="visualizer" id="visualizerContainer"></div>
-
-                    <!-- ИНФО -->
-                    <div class="track-info">
-                        <div class="track-name" id="currentTrackName">Загрузка...</div>
-                        <div class="artist-name" id="currentArtistName"></div>
-                        <div class="glow-line"></div>
+                    <div class="header">
+                        <h1>🎧 Music</h1>
+                        <small>relax</small>
                     </div>
 
-                    <!-- ПРОГРЕСС -->
-                    <div class="progress-area">
-                        <div class="progress-bar" id="progressBar">
-                            <div class="progress-fill" id="progressFill" style="width: 0%;">
-                                <div class="progress-thumb" id="progressThumb"></div>
-                            </div>
-                        </div>
-                        <div class="time-labels">
-                            <span id="currentTime">0:00</span>
-                            <span id="totalTime">0:00</span>
-                        </div>
-                    </div>
-
-                    <!-- КНОПКИ -->
                     <div class="controls">
-                        <button class="ctrl-btn" id="prevBtn">⏮</button>
-                        <button class="ctrl-btn play-btn" id="playBtn">▶</button>
-                        <button class="ctrl-btn" id="nextBtn">⏭</button>
+                        <button class="play-btn" id="playBtn" aria-label="Play/Pause">
+                            <svg viewBox="0 0 24 24" id="playIcon">
+                                <polygon points="6,3 20,12 6,21" />
+                            </svg>
+                            <span id="playLabel">Play</span>
+                        </button>
+
+                        <div class="track-selector">
+                            <label>🎵</label>
+                            <select id="trackSelect">
+                                <!-- Из JavaScript -->
+                            </select>
+                        </div>
+
+                        <div class="status-badge idle" id="statusBadge">
+                            <span id="statusText">Ready</span>
+                        </div>
                     </div>
 
-                    <!-- ПЛЕЙЛИСТ -->
-                    <div class="playlist" id="playlistContainer"></div>
+                    <div class="progress-area">
+                        <span class="time-label" id="currentTimeLabel">0:00</span>
+                        <input type="range" class="progress-slider" id="progressSlider" value="0" min="0" max="100" step="0.01">
+                        <span class="time-label" id="durationLabel">0:00</span>
+                    </div>
+
+                    <div class="volume-area">
+                        <span class="volume-icon">🔊</span>
+                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.2">
+                        <span class="volume-label" id="volumeLabel">80%</span>
+                    </div>
+</div>
                 </div>
-            </div>
-            
+            </div>  
     </section>
+
+    <main>
+        
+    </main>
+    
     <script src="Player/player.js"></script>
 </body>
 </html>
