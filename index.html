@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="Player/player.css">
+    <link rel="stylesheet" href="gallery/gallery.css">
     <title>maSite</title>
 
     <script defer src="script.js"></script>
@@ -15,7 +16,7 @@
     <!-- Сама спектрограмма (фон) -->
     <div class="spectrogram-container">
         <canvas id="spectrogramCanvas"></canvas>
-        <div class="hint">⚡ спектр в реальном времени</div>
+        <div class="hint">⚡  Real-time spectrum</div>
     </div>  
 
     <header>
@@ -36,7 +37,7 @@
                 <div class="player-card">
                     <div class="header">
                         <h1>🎧 Music</h1>
-                        <small>relax</small>
+                        <small>Wait for the wayform to load before pressing play</small>
                     </div>
 
                     <div class="controls">
@@ -59,10 +60,18 @@
                         </div>
                     </div>
 
+                    <!-- Вейформа -->
+                    <div class="waveform-container" id="waveformContainer">
+                        <canvas id="waveformCanvas"></canvas>
+                        <div class="waveform-progress" id="waveformProgress"></div>
+                        <div id="waveformTime">0:00</div>
+                        <div class="waveform-tooltip" id="waveformTooltip">0:00</div>
+                    </div>
+
+
                     <div class="progress-area">
                         <span class="time-label" id="currentTimeLabel">0:00</span>
-                        <input type="range" class="progress-slider" id="progressSlider" value="0" min="0" max="100" step="0.01">
-                        <span class="time-label" id="durationLabel">0:00</span>
+                        <span class="time-label" id="durationLabel" style="margin-left: auto;">0:00</span>
                     </div>
 
                     <div class="volume-area">
@@ -76,9 +85,33 @@
     </section>
 
     <main>
-        
+        <div class="gallery-container">
+            <!-- Фильтр по играм -->
+            <div class="gallery-filter">
+                <button class="filter-btn active" data-game="all">Все игры</button>
+                <button class="filter-btn" data-game="minecraft">Minecraft</button>
+                <button class="filter-btn" data-game="enfield">Arknights Enfield</button>
+            </div>
+
+            <!-- Сетка скриншотов -->
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Скриншоты будут добавляться через JavaScript -->
+            </div>
+        </div>
+
+        <!-- Модальное окно для просмотра -->
+        <div class="gallery-modal" id="galleryModal">
+            <button class="modal-close" id="modalClose">✕</button>
+            <img class="modal-image" id="modalImage" src="" alt="Screenshot">
+            <div class="modal-info" id="modalInfo">
+                <span class="modal-title" id="modalTitle">Название скриншота</span>
+                <span class="modal-game" id="modalGame">Игра</span>
+                <span class="modal-date" id="modalDate">Дата</span>
+            </div>
+        </div>
     </main>
     
     <script src="Player/player.js"></script>
+    <script src="gallery/gallery.js"></script>
 </body>
 </html>

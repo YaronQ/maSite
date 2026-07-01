@@ -90,10 +90,10 @@
             fill: currentColor;
         }
 
-        .play-btn.small {
+        /* .play-btn.small {
             padding: 8px 16px;
             font-size: 0.9rem;
-        }
+        } */
 
         .track-selector {
             display: flex;
@@ -141,7 +141,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-left: auto;
         }
 
         .status-badge.idle {
@@ -150,11 +149,105 @@
             border-color: rgba(255, 200, 100, 0.08);
         }
 
+        /* ---- Вейформа ---- */
+        .waveform-container {
+            position: relative;
+            width: 100%;
+            height: 90px;
+            margin: 6px 0 10px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: border-color 0.3s;
+        }
+
+        .waveform-container:hover {
+            border-color: #912d4b3b;
+        }
+
+        #waveformCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        /* Ползунок прогресса поверх вейформы */
+        .waveform-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background: #5b226d3d;
+            pointer-events: none;
+            border-right: 2px solid #773146;
+            transition: width 0.1s linear;
+            z-index: 2;
+        }
+
+        .waveform-progress::after {
+            /* content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #8ab4ff, #4a80d0);
+            box-shadow: 0 0 16px rgba(70, 130, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.15); */
+            display: none;
+        }
+
+        .waveform-time {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.35);
+            pointer-events: none;
+            font-variant-numeric: tabular-nums;
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 10px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+            font-weight: 500;
+        }
+
+        .waveform-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #eaf0ff;
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            z-index: 5;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .waveform-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* ---- Прогресс-бар (время) ---- */
         .progress-area {
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 6px 4px 14px 4px;
+            padding: 4px 4px 14px 4px;
         }
 
         .time-label {
@@ -165,7 +258,7 @@
             letter-spacing: 0.3px;
         }
 
-        .progress-slider {
+        /* .progress-slider {
             flex: 1;
             height: 4px;
             -webkit-appearance: none;
@@ -203,7 +296,7 @@
             box-shadow: 0 0 12px rgba(70, 130, 255, 0.5);
             border: 2px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
-        }
+        } */
 
         /* ---- Ползунок громкости ---- */
         .volume-area {
@@ -265,37 +358,44 @@
         }
 
         .spectrogram-container {
-            margin-top: 38vh;
-            overflow: hidden;
-            background: transparent;
             position: absolute;
-            width: 100%;
-            aspect-ratio: 16 / 5;
-            min-height: 120px;
-
-        }
-
-        #spectrogramCanvas {
-            display: block;
+            top: 2px;
+            left: 0;
             width: 100%;
             height: 100%;
             background: transparent;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+
+        #spectrogramCanvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            background: transparent;
             image-rendering: pixelated;
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
         }
 
         .hint {
             position: absolute;
-            bottom: 14px;
-            left: 20px;
-            color: rgba(180, 200, 230, 0.12);
-            font-size: 0.65rem;
-            letter-spacing: 1.2px;
+            bottom: 30px;
+            left: 30px;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
             pointer-events: none;
             font-weight: 300;
             backdrop-filter: blur(2px);
-            padding: 2px 12px;
+            padding: 4px 16px;
             border-radius: 20px;
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            font-family: base;
         }
 
         @media (max-width: 640px) {
@@ -326,3 +426,155 @@
                 font-size: 0.7rem;
             }
         }
+
+
+@media (max-width: 640px) {
+    .player-card {
+        padding: 16px 14px !important;
+        border-radius: 24px !important;
+        max-width: 100% !important;
+    }
+    
+    .header {
+        gap: 10px !important;
+        margin-bottom: 14px !important;
+    }
+    
+    .header h1 {
+        font-size: 1rem !important;
+    }
+    
+    .header small {
+        font-size: 0.55rem !important;
+        padding: 2px 10px !important;
+    }
+    
+    .controls {
+        gap: 10px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .play-btn {
+        padding: 10px 18px !important;
+        font-size: 0.9rem !important;
+        gap: 10px !important;
+        border-radius: 40px !important;
+    }
+    
+    .play-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+    
+    .track-selector {
+        padding: 4px 10px 4px 14px !important;
+        min-width: 120px !important;
+        flex: 1 !important;
+    }
+    
+    .track-selector label {
+        font-size: 0.7rem !important;
+    }
+    
+    .track-selector select {
+        font-size: 0.8rem !important;
+        padding: 4px 2px !important;
+        min-width: 70px !important;
+    }
+    
+    .status-badge {
+        font-size: 0.6rem !important;
+        padding: 3px 12px !important;
+    }
+    
+    .waveform-container {
+        height: 55px !important;
+        margin: 4px 0 6px 0 !important;
+        border-radius: 12px !important;
+    }
+    
+    .waveform-time {
+        font-size: 0.6rem !important;
+        bottom: 4px !important;
+        right: 8px !important;
+        padding: 1px 8px !important;
+    }
+    
+    .progress-area {
+        padding: 2px 2px 10px 2px !important;
+        gap: 10px !important;
+    }
+    
+    .time-label {
+        font-size: 0.65rem !important;
+        min-width: 32px !important;
+    }
+    
+    .volume-area {
+        padding: 2px 2px 6px 2px !important;
+        gap: 8px !important;
+    }
+    
+    .volume-icon {
+        font-size: 0.9rem !important;
+        min-width: 22px !important;
+    }
+    
+    .volume-slider {
+        max-width: 80px !important;
+    }
+    
+    .volume-label {
+        font-size: 0.6rem !important;
+        min-width: 28px !important;
+    }
+    
+    .hint {
+        display: none !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .player-card {
+        padding: 12px 10px !important;
+        border-radius: 18px !important;
+    }
+    
+    .header h1 {
+        font-size: 0.85rem !important;
+    }
+    
+    .play-btn {
+        padding: 8px 14px !important;
+        font-size: 0.8rem !important;
+        gap: 8px !important;
+    }
+    
+    .play-btn svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    
+    .waveform-container {
+        height: 40px !important;
+    }
+    
+    .track-selector {
+        min-width: 80px !important;
+        padding: 3px 6px 3px 10px !important;
+    }
+    
+    .track-selector select {
+        font-size: 0.7rem !important;
+        min-width: 60px !important;
+    }
+    
+    .time-label {
+        font-size: 0.55rem !important;
+        min-width: 28px !important;
+    }
+    
+    .volume-slider {
+        max-width: 60px !important;
+    }
+}
