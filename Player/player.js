@@ -1,7 +1,7 @@
 (function() {
     const TRACKS = [
-        { name: 'C418 — Aria Math (Synthwave)', url: '../music/C418 — Aria Math (Synthwave).mp3' },
-        { name: 'Re-Logic - Terraria Soundtrack Corruption', url: '../music/Re-Logic - Terraria Soundtrack Corruption.mp3' },
+        { name: 'C418 — Aria Math (Synthwave)', url: 'music/C418 — Aria Math (Synthwave).mp3' },
+        { name: 'Re-Logic - Terraria Soundtrack Corruption', url: 'music/Re-Logic - Terraria Soundtrack Corruption.mp3' },
 
             // Добавьте свои файлы по образцу:
             // { name: 'Мой трек', url: '../music/my_song.mp3' },

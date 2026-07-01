@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --transition: 1s cubic-bezier(0.125, 0.495, 0, 1);
 }
@@ -568,8 +572,8 @@ header nav a:hover {
     }
     
     .layer3, .layer3_1 {
-        height: min(50vh, 50vw) !important;
-        max-height: 400px !important;
+        height: min(100vh, 50vw) !important;
+        max-height: 500px !important;
     }
     
     .player-card {
